@@ -52,7 +52,7 @@ def test_nsw_old_property_file_name_allowed_failed(name):
 
 def test_nsw_old_property_file_create_property_from_line():
     prop = property_parser_nsw.NswOldPropertyFile(R'file/path')
-    assert isinstance(prop.create_property_from_line('fake_line'), property_parser_nsw.NswOldProperty)
+    assert isinstance(prop.create_property(), property_parser_nsw.NswOldProperty)
 
 
 OLD_FILE_LINE_OF_INTEREST = [
@@ -123,21 +123,28 @@ def test_nsw_new_property_file_name_allowed_failed(name):
 
 def test_nsw_new_property_file_create_property_from_line():
     prop = property_parser_nsw.NswNewPropertyFile(R'file/path')
-    assert isinstance(prop.create_property_from_line('fake_line'), property_parser_nsw.NswNewProperty)
+    assert isinstance(prop.create_property(), property_parser_nsw.NswNewProperty)
 
 
 NEW_FILE_LINE_OF_INTEREST = [
-    (R'''B;001;3771736;141;20180115 01:15;;;73 A;KLINE ST;WESTON;2326;802.3;M;20171121;20171219;515000;R2;R;RESIDENCE;;AAN;;0;AN8513;''')
+    (R'''B;001;3771736;141;20180115 01:15;;;73 A;KLINE ST;WESTON;2326;802.3;M;20171121;20171219;515000;R2;R;RESIDENCE;;AAN;;0;AN8513;'''),
 ]
 @pytest.mark.parametrize('line', NEW_FILE_LINE_OF_INTEREST)
 def test_nsw_new_property_file_line_of_interest(line):
     prop = property_parser_nsw.NswNewPropertyFile(R'file/path')
     assert prop.line_of_interest(line)
 
+NEW_FILE_EXTRA_LINE_OF_INTEREST = [
+    (R'''C;001;3968570;148;20180115 01:15;928/1209451;'''),
+]
+@pytest.mark.parametrize('line', NEW_FILE_EXTRA_LINE_OF_INTEREST)
+def test_nsw_new_property_file_line_of_interest(line):
+    prop = property_parser_nsw.NswNewPropertyFile(R'file/path')
+    assert prop.extra_line_of_interest(line)
+
 
 NEW_FILE_LINE_NOT_OF_INTEREST = [
     (R'''A;RTSALEDATA;001;20180115 01:15;VALNET;'''),
-    (R'''C;001;3968570;148;20180115 01:15;928/1209451;'''),
     (R'''D;001;3968570;148;20180115 01:15;P;;;;;;'''),
     (R'''Z;732;148;148;434;'''),
     (R'''A;;VALNET1;20150909 11:33;;'''),

@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 class NswOldProperty(property_parser.Property):
     """Nsw Old Style format Property File."""
 
-    def parse(self) -> bool:
+    def parse(self, line: str) -> bool:
         """Parse the property line."""
-        fields = property_parser.split_str(self.line, ';')
+        fields = property_parser.split_str(line, ';')
 
         district_code = fields[1]
         self[property_parser.PropertyData.DISTRICT_CODE] = district_code
@@ -53,9 +53,9 @@ class NswOldProperty(property_parser.Property):
 class NswOldPropertyFile(property_parser.PropertyFile):
     """Nsw Old Style format Property File."""
 
-    def create_property_from_line(self, line: str) -> NswOldProperty:
+    def create_property(self) -> NswOldProperty:
         """Create a property object for this class."""
-        return NswOldProperty(line)
+        return NswOldProperty()
 
     @staticmethod
     def name_allowed(file_name_candidate: str) -> bool:
@@ -67,13 +67,17 @@ class NswOldPropertyFile(property_parser.PropertyFile):
         """Check if File line is of interest."""
         return line.upper().startswith('B')
 
+    def extra_line_of_interest(self, line: str) -> bool:
+        """Check if File line is of interest."""
+        return False
+
 
 class NswNewProperty(property_parser.Property):
     """Nsw New Style format Property File."""
 
-    def parse(self) -> bool:
+    def parse(self, line: str) -> bool:
         """Parse the property line."""
-        fields = property_parser.split_str(self.line, ';')
+        fields = property_parser.split_str(line, ';')
 
         district_code = fields[1]
         self[property_parser.PropertyData.DISTRICT_CODE] = district_code
@@ -118,13 +122,21 @@ class NswNewProperty(property_parser.Property):
 
         return True
 
+    def parse_extra(self, line: str):
+        fields = property_parser.split_str(line, ';')
+        if fields[0].upper() == 'C':
+            # Concatenated property description cut @ 70 characters. If more than one “C” record they join
+            # without a space. Multiple “C” records will be sent in order of extraction.
+            ld = self[property_parser.PropertyData.LEGAL_DESCRIPTION] or ""
+            self[property_parser.PropertyData.LEGAL_DESCRIPTION] = F"{ld}{fields[5]}"
+
 
 class NswNewPropertyFile(property_parser.PropertyFile):
     """Nsw New Style format Property File."""
 
-    def create_property_from_line(self, line: str) -> NswNewProperty:
+    def create_property(self) -> NswNewProperty:
         """Create a property object for this class."""
-        return NswNewProperty(line)
+        return NswNewProperty()
 
     @staticmethod
     def name_allowed(file_name_candidate: str) -> bool:
@@ -135,3 +147,7 @@ class NswNewPropertyFile(property_parser.PropertyFile):
     def line_of_interest(self, line: str) -> bool:
         """Check if File line is of interest."""
         return line.upper().startswith('B')
+
+    def extra_line_of_interest(self, line: str) -> bool:
+        """Check if File line is of interest."""
+        return line.upper().startswith('C')

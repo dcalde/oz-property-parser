@@ -31,7 +31,7 @@ def parse_args() -> argparse.Namespace:
 def validate_args(args: argparse.Namespace) -> None:
     """Validate the command line arguments."""
     if (not os.path.exists(args.dir)) or (not os.path.isdir(args.dir)):
-        raise ValueError(F'"{args.dir}" is not a vaid directory')
+        raise ValueError(F'"{args.dir}" is not a valid directory')
 
 
 def file_size(file_path) -> int:
@@ -196,7 +196,7 @@ def main() -> None:
 
     logger.info(F'Command Line Arguments: "{args}"')
 
-    db_path = os.path.join(args.dir, F'ParseResult_Properties.sql')
+    db_path = os.path.join(args.dir, F'ParseResult_Properties.sqlite')
     with db_store.SqliteDb(db_path) as database:
         if not os.path.exists(db_path):
             columns = [str(fld.value) for fld in property_parser.PropertyData]

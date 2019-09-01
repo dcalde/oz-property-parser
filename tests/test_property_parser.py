@@ -52,7 +52,7 @@ def test_property_file_name_allowed():
 def test_property_file_create_property_from_line():
     prop = property_parser.PropertyFile(R'file/path')
     with pytest.raises(NotImplementedError):
-        prop.create_property_from_line('This is a fake line')
+        prop.create_property()
 
 
 def test_property_file_line_of_interest():

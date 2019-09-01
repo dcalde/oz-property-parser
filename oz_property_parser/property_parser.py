@@ -29,6 +29,7 @@ class PropertyData(enum.Enum):
     AREA_TYPE = 'Area_Type'
     DIMENSIONS = 'Dimensions'
     LAND_DESCRIPTIONS = 'Land_Descriptions'
+    LEGAL_DESCRIPTION = 'Legal_Description'
     LOT_NUMBER = 'Lot_Number'
 
     # Address Details
@@ -58,15 +59,17 @@ class PropertyData(enum.Enum):
 class Property():
     """Property Line base class."""
 
-    def __init__(self, line: str) -> None:
-        """Initialize Property Line."""
-        self.line = line
-
+    def __init__(self) -> None:
+        """Initialize Property."""
         self._fields: Dict[str, str] = collections.defaultdict(str)
 
-    def parse(self) -> bool:
+    def parse(self, line: str) -> bool:
         """Parse the property line."""
         raise NotImplementedError
+
+    def parse_extra(self, line: str):
+        """Parse optional extra line(s)."""
+        pass
 
     def get_field_dic(self) -> Dict[str, str]:
         """Get a list of all the fields as dictionaries."""
@@ -115,11 +118,15 @@ class PropertyFile():
         """Check if the given name is allowed."""
         raise NotImplementedError
 
-    def create_property_from_line(self, line: str) -> Property:
+    def create_property(self) -> Property:
         """Create a property object for this class."""
         raise NotImplementedError
 
     def line_of_interest(self, line: str) -> bool:
+        """Check if File line is of interest."""
+        raise NotImplementedError
+
+    def extra_line_of_interest(self, line: str) -> bool:
         """Check if File line is of interest."""
         raise NotImplementedError
 
@@ -129,17 +136,15 @@ class PropertyFile():
             for idx, raw_line in enumerate(prop_file, start=1):
                 line = raw_line.strip()
                 if self.line_of_interest(line):
-                    # For now let's assume we only need a single line for each
-                    # property. New NSW entries have multiple lines per
-                    # property but only 1 has data we are interested in
-                    # single line makes parsing a lot simpler for now
-                    prop = self.create_property_from_line(line)
-                    if prop.parse():
+                    prop = self.create_property()
+                    if prop.parse(line):
                         prop[PropertyData.FILE_NAME] = self._file_name
                         prop[PropertyData.LINE_NO] = str(idx)
                         self._properties.append(prop)
                     else:
                         raise ValueError(F'Failed Parsing Line: "{line}"')
+                elif self.extra_line_of_interest(line):
+                    prop.parse_extra(line)
 
     def get_lines_as_list(self) -> List[Dict[str, str]]:
         """Get a list of all the properties."""
